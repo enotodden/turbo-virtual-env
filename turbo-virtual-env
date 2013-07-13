@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+
+# turbo-virtual-env
+# =================
+# A script to install LuaJIT and Turbo together in a self contained directory #
+
+# I know it's corny that this is a shell script and not written in Lua,
+# but the upside is that the user won't have to have Lua or LuaJIT
+# installed already.
+
+usage(){
+	echo -e "\
+** turbo-virtual-env **
+
+Description:
+  A script to install LuaJIT and Turbo together in an 'isolated' environment,
+  inspired by the virtual-env tool for Python.
+  - Clones, builds and installs LuaJIT and Turbo
+  - Creates a source-able 'activate' script in DIR_SUPPLIED_ON_COMMAND_LINE/env/bin/activate
+
+Usage:
+  turbo-virtual-env /some/path
+  source /some/path/env/bin/active
+
+Issues:	github.com/enotodden/turbo-virtual-env/issues
+Source: github.com/entoodden/turbo-virtual-env
+License: MIT"
+}
+
+if [ "$#" -lt "1" ]; then
+	usage 
+	exit
+fi
+
+if [ "$1" = "-h" ]; then usage; exit; fi
+if [ "$1" = "--help" ]; then usage; exit; fi
+
+LUAJIT_GITVERSION="2.0"
+LUAJIT_GIT_URL="http://luajit.org/git/luajit-$LUAJIT_GITVERSION.git"
+LUAJIT_DIR="luajit-$LUAJIT_GITVERSION"
+# TURBO does not have a 'release' yet so no need for TURBO_VERSION
+TURBO_GIT_URL="https://github.com/enotodden/turbo.git" # Will change enotodden to kernelsauce when/if pr #55 is accepted
+CREATE_IN_DIR=`realpath $1`
+ENVDIR=$CREATE_IN_DIR/env
+LUAJIT_DIR="$ENVDIR/src/luajit-$LUAJIT_GITVERSION"
+TURBO_DIR="$ENVDIR/src/turbo"
+
+echo "turbo-virtual-env: Creating directories"
+mkdir -p "$ENVDIR/bin"
+mkdir -p "$ENVDIR/src"
+
+echo "turbo-virtual-env: Cloning LuaJIT from $LUAJIT_GIT_URL to $LUAJIT_DIR"
+git clone $LUAJIT_GIT_URL $LUAJIT_DIR
+
+echo "turbo-virtual-env: Building LuaJIT"
+make -C $LUAJIT_DIR PREFIX=$ENVDIR
+
+echo "turbo-virtual-env: Installing LuaJIT to $ENVDIR"
+make -C $LUAJIT_DIR install PREFIX=$ENVDIR
+
+LUAJIT_MAJVER=`cat $LUAJIT_DIR/etc/luajit.pc | grep '^majver' | sed 's/majver\s*=\s*//g'`
+LUAJIT_MINVER=`cat $LUAJIT_DIR/etc/luajit.pc | grep '^minver' | sed 's/minver\s*=\s*//g'`
+LUAJIT_RELVER=`cat $LUAJIT_DIR/etc/luajit.pc | grep '^relver' | sed 's/relver\s*=\s*//g'`
+LUAJIT_VERSION="$LUAJIT_MAJVER.$LUAJIT_MINVER.$LUAJIT_RELVER"
+
+echo "turbo-virtual-env: Cloning turbo from $TURBO_GIT_URL to $TURBO_DIR"
+git clone $TURBO_GIT_URL $TURBO_DIR
+
+echo "turbo-virtual-env: Building Turbo"
+make -C $TURBO_DIR PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
+
+echo "turbo-virtual-env: Installing turbo to $ENVDIR"
+make -C $TURBO_DIR PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
+
+
+echo "turbo-virtual-env: Writing activation script to $ENVDIR/bin/activate"
+
+echo -e "
+
+export TURBO_VIRTUAL_ENV=\"$ENVDIR\"
+export PATH=\"\$TURBO_VIRTUAL_ENV/bin:\$TURBO_VIRTUAL_ENV/lib:$PATH\"
+export TURBO_VIRTUAL_ENV_OLD_PATH=\"$PATH\"
+export LD_LIBRARY_PATH=\$TURBO_VIRTUAL_ENV/lib:\$TURBO_VIRTUAL_ENV/lib/lua/5.1:$LD_LIBRARY_PATH
+export TURBO_VIRTUAL_ENV_OLD_LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH\"
+
+deactivate() {
+	export PATH=\$TURBO_VIRTUAL_ENV_OLD_PATH
+	export LD_LIBRARY_PATH=\$TURBO_VIRTUAL_ENV_OLD_LD_LIBRARY_PATH
+	unset \$TURBO_VIRTUAL_ENV
+	if [ ! -z \$TURBO_VIRTUAL_ENV_OLD_PROMPT ]; then
+		export PS1=\"\$TURBO_VIRTUAL_ENV_OLD_PROMPT\"
+	fi
+}
+
+export TURBO_VIRTUAL_ENV_OLD_PROMPT="$PS1";
+if [ -z \"\$TURBO_VIRTUAL_ENV_DISABLE_PROMPT\" ] ; then
+	export PS1=\"[tvenv]\";
+fi
+
+
+alias lua=\"luajit\"
+" > $ENVDIR/bin/activate
+
+echo "turbo-virtual-env: All done, please source $ENVDIR/bin/activate"
