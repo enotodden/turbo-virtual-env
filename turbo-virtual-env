@@ -37,6 +37,13 @@ if [ "$1" = "--help" ]; then usage; exit; fi
 
 ENVDIR=`realpath $1`
 
+if [ -d $ENVDIR ]; then 
+    if [ ! -f "$ENVDIR/.turbo-virtual-env" ]; then
+        echo "Directory '$ENVDIR' already exists and is not a turbo-virtual-env directory."
+        exit 1
+    fi
+fi
+
 LUAJIT_GITVERSION="2.0"
 LUAJIT_GIT_URL="http://luajit.org/git/luajit-$LUAJIT_GITVERSION.git"
 LUAJIT_DIR="$ENVDIR/src/luajit-$LUAJIT_GITVERSION"
@@ -48,6 +55,7 @@ echo "turbo-virtual-env: Creating directories"
 mkdir -p "$ENVDIR/bin"
 mkdir -p "$ENVDIR/src"
 
+touch "$ENVDIR/.turbo-virtual-env"
 
 echo "turbo-virtual-env: Writing activation script to $ENVDIR/bin/activate"
 echo -e "
