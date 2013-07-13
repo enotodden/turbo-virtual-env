@@ -35,13 +35,13 @@ fi
 if [ "$1" = "-h" ]; then usage; exit; fi
 if [ "$1" = "--help" ]; then usage; exit; fi
 
+ENVDIR=`realpath $1`
+
 LUAJIT_GITVERSION="2.0"
 LUAJIT_GIT_URL="http://luajit.org/git/luajit-$LUAJIT_GITVERSION.git"
-LUAJIT_DIR="luajit-$LUAJIT_GITVERSION"
+LUAJIT_DIR="$ENVDIR/src/luajit-$LUAJIT_GITVERSION"
 # TURBO does not have a 'release' yet so no need for TURBO_VERSION
 TURBO_GIT_URL="https://github.com/enotodden/turbo.git" # Will change enotodden to kernelsauce when/if pr #55 is accepted
-ENVDIR=`realpath $1`
-LUAJIT_DIR="$ENVDIR/src/luajit-$LUAJIT_GITVERSION"
 TURBO_DIR="$ENVDIR/src/turbo"
 
 echo "turbo-virtual-env: Creating directories"
