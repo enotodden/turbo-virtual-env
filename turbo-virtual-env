@@ -16,11 +16,11 @@ Description:
   A script to install LuaJIT and Turbo together in an 'isolated' environment,
   inspired by the virtual-env tool for Python.
   - Clones, builds and installs LuaJIT and Turbo
-  - Creates a source-able 'activate' script in DIR_SUPPLIED_ON_COMMAND_LINE/env/bin/activate
+  - Creates a source-able 'activate' script in DIR_SUPPLIED_ON_COMMAND_LINE/bin/activate
 
 Usage:
   turbo-virtual-env /some/path
-  source /some/path/env/bin/active
+  source /some/path/bin/active
 
 Issues:	github.com/enotodden/turbo-virtual-env/issues
 Source: github.com/entoodden/turbo-virtual-env
@@ -40,8 +40,7 @@ LUAJIT_GIT_URL="http://luajit.org/git/luajit-$LUAJIT_GITVERSION.git"
 LUAJIT_DIR="luajit-$LUAJIT_GITVERSION"
 # TURBO does not have a 'release' yet so no need for TURBO_VERSION
 TURBO_GIT_URL="https://github.com/enotodden/turbo.git" # Will change enotodden to kernelsauce when/if pr #55 is accepted
-CREATE_IN_DIR=`realpath $1`
-ENVDIR=$CREATE_IN_DIR/env
+ENVDIR=`realpath $1`
 LUAJIT_DIR="$ENVDIR/src/luajit-$LUAJIT_GITVERSION"
 TURBO_DIR="$ENVDIR/src/turbo"
 
