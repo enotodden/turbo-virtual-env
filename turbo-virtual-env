@@ -49,6 +49,35 @@ echo "turbo-virtual-env: Creating directories"
 mkdir -p "$ENVDIR/bin"
 mkdir -p "$ENVDIR/src"
 
+
+echo "turbo-virtual-env: Writing activation script to $ENVDIR/bin/activate"
+echo -e "
+
+export TURBO_VIRTUAL_ENV=\"$ENVDIR\"
+export PATH=\"\$TURBO_VIRTUAL_ENV/bin:\$TURBO_VIRTUAL_ENV/lib:$PATH\"
+export TURBO_VIRTUAL_ENV_OLD_PATH=\"$PATH\"
+export LD_LIBRARY_PATH=\$TURBO_VIRTUAL_ENV/lib:\$TURBO_VIRTUAL_ENV/lib/lua/5.1:$LD_LIBRARY_PATH
+export TURBO_VIRTUAL_ENV_OLD_LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH\"
+
+deactivate() {
+	export PATH=\$TURBO_VIRTUAL_ENV_OLD_PATH
+	export LD_LIBRARY_PATH=\$TURBO_VIRTUAL_ENV_OLD_LD_LIBRARY_PATH
+	unset \$TURBO_VIRTUAL_ENV
+	if [ ! -z \$TURBO_VIRTUAL_ENV_OLD_PROMPT ]; then
+		export PS1=\"\$TURBO_VIRTUAL_ENV_OLD_PROMPT\"
+	fi
+}
+
+export TURBO_VIRTUAL_ENV_OLD_PROMPT=\"\$PS1\";
+if [ -z \"\$TURBO_VIRTUAL_ENV_DISABLE_PROMPT\" ] ; then
+	export PS1=\"[tvenv]\$PS1\";
+fi
+
+
+alias lua=\"luajit\"
+" > $ENVDIR/bin/activate
+
+
 echo "turbo-virtual-env: Cloning LuaJIT from $LUAJIT_GIT_URL to $LUAJIT_DIR"
 git clone $LUAJIT_GIT_URL $LUAJIT_DIR
 
@@ -72,33 +101,5 @@ make -C $TURBO_DIR PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
 echo "turbo-virtual-env: Installing turbo to $ENVDIR"
 make -C $TURBO_DIR PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
 
-
-echo "turbo-virtual-env: Writing activation script to $ENVDIR/bin/activate"
-
-echo -e "
-
-export TURBO_VIRTUAL_ENV=\"$ENVDIR\"
-export PATH=\"\$TURBO_VIRTUAL_ENV/bin:\$TURBO_VIRTUAL_ENV/lib:$PATH\"
-export TURBO_VIRTUAL_ENV_OLD_PATH=\"$PATH\"
-export LD_LIBRARY_PATH=\$TURBO_VIRTUAL_ENV/lib:\$TURBO_VIRTUAL_ENV/lib/lua/5.1:$LD_LIBRARY_PATH
-export TURBO_VIRTUAL_ENV_OLD_LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH\"
-
-deactivate() {
-	export PATH=\$TURBO_VIRTUAL_ENV_OLD_PATH
-	export LD_LIBRARY_PATH=\$TURBO_VIRTUAL_ENV_OLD_LD_LIBRARY_PATH
-	unset \$TURBO_VIRTUAL_ENV
-	if [ ! -z \$TURBO_VIRTUAL_ENV_OLD_PROMPT ]; then
-		export PS1=\"\$TURBO_VIRTUAL_ENV_OLD_PROMPT\"
-	fi
-}
-
-export TURBO_VIRTUAL_ENV_OLD_PROMPT="$PS1";
-if [ -z \"\$TURBO_VIRTUAL_ENV_DISABLE_PROMPT\" ] ; then
-	export PS1=\"[tvenv]\";
-fi
-
-
-alias lua=\"luajit\"
-" > $ENVDIR/bin/activate
 
 echo "turbo-virtual-env: All done, please source $ENVDIR/bin/activate"
