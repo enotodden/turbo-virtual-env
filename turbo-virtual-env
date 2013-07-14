@@ -18,12 +18,16 @@ usage(){
 	echo -e "\
 ** turbo-virtual-env **
 
-Usage:
+Usage: turbo-virtual-env -c/--create PATH_TO_ENV_DIR 
+                         [--turbo-dev PATH_TO_TURBO_SOURCE_DIR]
+                         [-r/--luarocks-requirements PATH_TO_LUAROCKS_REQUIREMENTS_FILE]
+
+Example Usage:
   \$ cd /path/to/my/project
   \$ turbo-virtual-env --create ./env
   \$ source ./env/bin/activate
 
-Usage (turbo development mode):
+Example Usage (turbo development mode):
   \$ cd /some/dir
   \$ turbo-virtual-env --create ./env --turbo-dev /path/to/my/turbo
 
@@ -95,6 +99,15 @@ install_turbo_dev(){
 }
 
 
+install_luarocks_requirements() {
+    echo "turbo-virtual-env: Installing luarocks from $LUAROCKS_REQUIREMENTS_FILE"
+    source $ENVDIR/bin/activate
+    for line in `cat $LUAROCKS_REQUIREMENTS_FILE`; do
+        luarocks install $line
+    done
+}
+
+
 write_activate_script(){
     echo "turbo-virtual-env: Writing activation script to $ENVDIR/bin/activate"
     echo -e "
@@ -158,6 +171,10 @@ create(){
         echo $TURBO_DEV > $ENVDIR/turbo-virtual-env-turbo-dev
     fi
 
+    if [ ! -z "$LUAROCKS_REQUIREMENTS_FILE" ]; then
+        install_luarocks_requirements
+    fi
+
     echo "turbo-virtual-env: All done, please source $ENVDIR/bin/activate"
 }
 
@@ -172,12 +189,15 @@ while true; do
             usage
             exit
             shift;;
+        -d|--turbo-dev)
+            TURBO_DEV=`realpath $2`
+            shift 2;;
+        -r|--luarocks-requirements)
+            LUAROCKS_REQUIREMENTS_FILE=`realpath $2`
+            shift 2;;
         -c|--create)
             ENVDIR=$2
             ACTION="create"
-            shift 2;;
-        -d|--turbo-dev)
-            TURBO_DEV=`realpath $2`
             shift 2;;
         --)
             shift
