@@ -19,7 +19,7 @@ Get started really quickly
 --------------------------
 
     $ cd /path/to/my/project
-    $ curl https://raw.github.com/enotodden/turbo-virtual-env/master/turbo-virtual-env | bash -s - ./env
+    $ curl https://raw.github.com/enotodden/turbo-virtual-env/master/turbo-virtual-env | bash -s - --create ./env
     $ source ./env/bin/activate
 
 
@@ -31,6 +31,14 @@ Get started quite quickly
     $ cd turbo-virtual-env
     $ cp turbo-virtual-env /some/where/in/$PATH
     $ cd /path/to/my/project
-    $ turbo-virtual-env ./env
+    $ turbo-virtual-env --create ./env
     $ source ./env/bin/activate
 
+
+Turbo Development Mode
+----------------------
+
+`turbo-virtual-env` also takes an optional --turbo-dev argument to 
+use the tool with an existing Turbo source directory.
+
+    $ turbo-virtual-env --create ./path/to/my/env --turbo-dev /path/to/my/turbosrc
