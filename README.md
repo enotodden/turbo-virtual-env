@@ -1,7 +1,7 @@
 turbo-virtual-env
 =================
 
-A simple script to install Turbo and LuaJIT in a self-contained directory.
+A simple script to install Turbo, LuaJIT and LuaRocks in a self-contained directory.
 Inspired by the `virtual-env` python tool.
 
 
