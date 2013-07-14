@@ -12,15 +12,20 @@ usage(){
 	echo -e "\
 ** turbo-virtual-env **
 
+Usage:
+  \$ cd /path/to/my/project
+  \$ turbo-virtual-env --create ./env
+  \$ source ./env/bin/activate
+
+Usage (turbo development mode):
+  \$ cd /some/dir
+  \$ turbo-virtual-env --create ./env --turbo-dev /path/to/my/turbo
+
 Description:
   A script to install LuaJIT and Turbo together in an 'isolated' environment,
   inspired by the virtual-env tool for Python.
   - Clones, builds and installs LuaJIT and Turbo
   - Creates a source-able 'activate' script in DIR_SUPPLIED_ON_COMMAND_LINE/bin/activate
-
-Usage:
-  turbo-virtual-env /some/path
-  source /some/path/bin/active
 
 Issues:	github.com/enotodden/turbo-virtual-env/issues
 Source: github.com/entoodden/turbo-virtual-env
