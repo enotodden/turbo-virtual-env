@@ -65,8 +65,8 @@ Only stuff that most people have installed already.
 
 
 
-Example: Creating a new Turbo project with `turbo-virtual-env`
---------------------------------------------------------------
+Example: Creating a new Turbo project with dependency from LuaRocks
+-------------------------------------------------------------------
 
 This example shows how to set up a new project with Turbo and Penlight.
 
