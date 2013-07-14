@@ -9,8 +9,9 @@ Inspired by the `virtual-env` python tool.
 What it does:
 -------------
 
-+ Clones LuaJIT and builds it
-+ Clones turbo and builds it
++ Clones LuaJIT and builds it.
++ Clones turbo and builds it.
++ Clones LuaRocks and builds it.
 + Creates a source-able activation script that modifies PATH, etc.
 
 
@@ -61,4 +62,5 @@ Only stuff that most people have installed already.
 + git
 + curl
 + Basic build tools like gcc, make etc. (apt-get install build-essential on debian based distros)
+
 
