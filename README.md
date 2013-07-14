@@ -59,10 +59,28 @@ Examples:
 
 #### Creating a new Turbo project with dependency from LuaRocks:
 
-This example shows how to set up a new virtual environment with Penlight as a dependency.
-
-<script src="https://gist.github.com/enotodden/5994524.js">
-</script>
+This example shows how to create a new environment with the 'penlight' 
+package from luarocks as a dependency.
+     
+    $ cd /tmp
+    $ mkdir myproject
+    $ cd myproject
+     
+    $ #Tell turbo-virtual-env to pass 'penlight' to luarocks for installation
+    $ echo "penlight" >> ./requirements.txt
+     
+    $ turbo-virtual-env --create ./env -r ./requirements.txt
+     
+    $ # Activate virtual environment
+    $ source env/bin/activate # Activate our virtual environment
+     
+    $ lua #lua is symlinked to luajit binary
+    LuaJIT 2.0.2 -- Copyright (C) 2005-2013 Mike Pall. http://luajit.org/
+    JIT: ON CMOV SSE2 SSE3 SSE4.1 fold cse dce fwd dse narrow loop abc sink fuse
+    > require("pl")
+    > if path.isdir("/") then print("Suprise! '/' is a directory!") end
+    Suprise! '/' is a directory!
+    > 
 
 
 
