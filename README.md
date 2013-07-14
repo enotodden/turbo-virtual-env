@@ -44,6 +44,13 @@ use the tool with an existing Turbo source directory.
     $ turbo-virtual-env --create ./path/to/my/env --turbo-dev /path/to/my/turbosrc
 
 
+LuaRocks Requirements File
+--------------------------
+
+By passing the `-r` or `--luarocks-requirements` to `turbo-virtual-env`
+it will read the supplied file line by line and run the contents of that line
+as arguments to `luarocks install`
+
 
 Dependencies
 ------------
