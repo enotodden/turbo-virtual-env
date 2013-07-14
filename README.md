@@ -42,3 +42,16 @@ Turbo Development Mode
 use the tool with an existing Turbo source directory.
 
     $ turbo-virtual-env --create ./path/to/my/env --turbo-dev /path/to/my/turbosrc
+
+
+
+Dependencies
+------------
+
+Only stuff that most people have installed already.
+
++ bash
++ git
++ curl
++ Basic build tools like gcc, make etc. (apt-get install build-essential on debian based distros)
+
