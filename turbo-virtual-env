@@ -8,6 +8,12 @@
 # but the upside is that the user won't have to have Lua or LuaJIT
 # installed already.
 
+LUAJIT_GITVERSION="2.0"
+LUAJIT_GIT_URL="http://luajit.org/git/luajit-$LUAJIT_GITVERSION.git"
+LUAROCKS_GIT_URL="https://github.com/keplerproject/luarocks.git"
+TURBO_GIT_URL="https://github.com/enotodden/turbo.git" # Will change enotodden to kernelsauce when/if pr #55 is accepted
+
+
 usage(){
 	echo -e "\
 ** turbo-virtual-env **
@@ -33,34 +39,63 @@ License: MIT"
 }
 
 
-
-create(){
-
-    if [ -d $ENVDIR ]; then 
-        if [ ! -f "$ENVDIR/.turbo-virtual-env" ]; then
-            echo "Directory '$ENVDIR' already exists and is not a turbo-virtual-env directory."
-            exit 1
-        fi
-    fi
-
-    echo "turbo-virtual-env: Creating directories"
-    mkdir -p "$ENVDIR/bin"
-    mkdir -p "$ENVDIR/src"
-
-    ENVDIR=`realpath $ENVDIR`
-
-    LUAJIT_GITVERSION="2.0"
-    LUAJIT_GIT_URL="http://luajit.org/git/luajit-$LUAJIT_GITVERSION.git"
+luajit_full_version(){
     LUAJIT_DIR="$ENVDIR/src/luajit-$LUAJIT_GITVERSION"
-    # TURBO does not have a 'release' yet so no need for TURBO_VERSION
-    TURBO_GIT_URL="https://github.com/enotodden/turbo.git" # Will change enotodden to kernelsauce when/if pr #55 is accepted
-    if [ -z $TURBO_DEV ]; then
-        TURBO_DIR="$ENVDIR/src/turbo"
-    else
-        TURBO_DIR=$TURBO_DEV
-    fi
+    LUAJIT_MAJVER=`cat $LUAJIT_DIR/etc/luajit.pc | grep '^majver' | sed 's/majver\s*=\s*//g'`
+    LUAJIT_MINVER=`cat $LUAJIT_DIR/etc/luajit.pc | grep '^minver' | sed 's/minver\s*=\s*//g'`
+    LUAJIT_RELVER=`cat $LUAJIT_DIR/etc/luajit.pc | grep '^relver' | sed 's/relver\s*=\s*//g'`
+    echo "$LUAJIT_MAJVER.$LUAJIT_MINVER.$LUAJIT_RELVER"
+}
 
-    touch "$ENVDIR/.turbo-virtual-env"
+
+install_luarocks(){
+    LUAROCKS_DIR=$ENVDIR/src/luarocks
+    git clone $LUAROCKS_GIT_URL $LUAROCKS_DIR
+    $LUAROCKS_DIR/configure --prefix=$ENVDIR --force-config --with-lua=$ENVDIR --with-lua-include=$ENVDIR/include/luajit-$LUAJIT_GITVERSION
+    mv config.unix $LUAROCKS_DIR
+    make -C $LUAROCKS_DIR build
+    make -C $LUAROCKS_DIR install
+}
+
+
+install_luajit(){
+    LUAJIT_DIR="$ENVDIR/src/luajit-$LUAJIT_GITVERSION"
+    echo "turbo-virtual-env: Cloning LuaJIT from $LUAJIT_GIT_URL to $LUAJIT_DIR"
+    git clone $LUAJIT_GIT_URL $LUAJIT_DIR
+    echo "turbo-virtual-env: Building LuaJIT"
+    make -C $LUAJIT_DIR PREFIX=$ENVDIR
+    echo "turbo-virtual-env: Installing LuaJIT to $ENVDIR"
+    make -C $LUAJIT_DIR install PREFIX=$ENVDIR
+    ln -s $ENVDIR/bin/luajit-`luajit_full_version` $ENVDIR/bin/lua
+}
+
+
+install_turbo(){
+    TURBO_DIR="$ENVDIR/src/turbo"
+    LUAJIT_VERSION=`luajit_full_version`
+    echo "turbo-virtual-env: Cloning turbo from $TURBO_GIT_URL to $TURBO_DIR"
+    git clone $TURBO_GIT_URL $TURBO_DIR
+    echo "turbo-virtual-env: Building Turbo"
+    make -C $TURBO_DIR PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
+    echo "turbo-virtual-env: Installing turbo to $ENVDIR"
+    make -C $TURBO_DIR install PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
+}
+
+
+install_turbo_dev(){
+    TURBO_DIR=$TURBO_DEV
+    LUAJIT_VERSION=`luajit_full_version`
+    echo "turbo-virtual-env: Linking existing turbo srcdir to $ENVDIR/src/turbo"
+    ln -s $TURBO_DEV $ENVDIR/src/turbo
+    echo "turbo-virtual-env: Building Turbo"
+    make -C $TURBO_DIR PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
+    echo "turbo-virtual-env: linking turbo files"
+    ln -s $TURBO_DIR/turbo.lua $ENVDIR/share/luajit-$LUAJIT_VERSION/turbo.lua
+    ln -s $TURBO_DIR/turbo $ENVDIR/share/luajit-$LUAJIT_VERSION/turbo
+}
+
+
+write_activate_script(){
     echo "turbo-virtual-env: Writing activation script to $ENVDIR/bin/activate"
     echo -e "
 
@@ -87,41 +122,40 @@ create(){
 
     alias lua=\"luajit\"
     " > $ENVDIR/bin/activate
+}
 
 
-    echo "turbo-virtual-env: Cloning LuaJIT from $LUAJIT_GIT_URL to $LUAJIT_DIR"
-    git clone $LUAJIT_GIT_URL $LUAJIT_DIR
+create(){
 
-    echo "turbo-virtual-env: Building LuaJIT"
-    make -C $LUAJIT_DIR PREFIX=$ENVDIR
-
-    echo "turbo-virtual-env: Installing LuaJIT to $ENVDIR"
-    make -C $LUAJIT_DIR install PREFIX=$ENVDIR
-
-    LUAJIT_MAJVER=`cat $LUAJIT_DIR/etc/luajit.pc | grep '^majver' | sed 's/majver\s*=\s*//g'`
-    LUAJIT_MINVER=`cat $LUAJIT_DIR/etc/luajit.pc | grep '^minver' | sed 's/minver\s*=\s*//g'`
-    LUAJIT_RELVER=`cat $LUAJIT_DIR/etc/luajit.pc | grep '^relver' | sed 's/relver\s*=\s*//g'`
-    LUAJIT_VERSION="$LUAJIT_MAJVER.$LUAJIT_MINVER.$LUAJIT_RELVER"
-
-    if [ -z "$TURBO_DEV" ]; then
-        echo "turbo-virtual-env: Cloning turbo from $TURBO_GIT_URL to $TURBO_DIR"
-        git clone $TURBO_GIT_URL $TURBO_DIR
-    else
-        echo "turbo-virtual-env: Linking existing turbo srcdir to $ENVDIR/src/turbo"
-        ln -s $TURBO_DEV $ENVDIR/src/turbo
-
+    if [ -d $ENVDIR ]; then 
+        if [ ! -f "$ENVDIR/.turbo-virtual-env" ]; then
+            echo "Directory '$ENVDIR' already exists and is not a turbo-virtual-env directory."
+            exit 1
+        fi
     fi
 
-    echo "turbo-virtual-env: Building Turbo"
-    make -C $TURBO_DIR PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
+    echo "turbo-virtual-env: Creating directories"
+    mkdir -p "$ENVDIR/bin"
+    mkdir -p "$ENVDIR/src"
+
+    ENVDIR=`realpath $ENVDIR`
+
+    touch "$ENVDIR/.turbo-virtual-env"
+
+    write_activate_script
+
+    install_luajit
+    install_luarocks
+
+    if [ -f "$ENVDIR/.turbo-virtual-env-turbo-dev" ]; then
+        $TURBO_DEV=`cat $ENVDIR/turbo-virtual-env-turbo-dev`
+    fi
 
     if [ -z $TURBO_DEV ]; then
-        echo "turbo-virtual-env: Installing turbo to $ENVDIR"
-        make -C $TURBO_DIR install PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
+        install_turbo
     else
-        echo "turbo-virtual-env: linking turbo files"
-        ln -s $TURBO_DIR/turbo.lua $ENVDIR/share/luajit-$LUAJIT_VERSION/turbo.lua
-        ln -s $TURBO_DIR/turbo $ENVDIR/share/luajit-$LUAJIT_VERSION/turbo
+        install_turbo_dev
+        echo $TURBO_DEV > $ENVDIR/turbo-virtual-env-turbo-dev
     fi
 
     echo "turbo-virtual-env: All done, please source $ENVDIR/bin/activate"
