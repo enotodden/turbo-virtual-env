@@ -178,7 +178,7 @@ create(){
     echo "turbo-virtual-env: All done, please source $ENVDIR/bin/activate"
 }
 
-ARGS=`getopt -o "hc:d:" -l "help,create:,turbo-dev:" -n "turbo-virtual-env" -- "$@"`
+ARGS=`getopt -o "hc:d:r:" -l "help,create:,turbo-dev:,luarocks-requirements:" -n "turbo-virtual-env" -- "$@"`
 eval set -- "$ARGS"
 
 ACTION=""
@@ -204,7 +204,6 @@ while true; do
             break;;
     esac
 done
-echo $ACTION
 
 if [ "$ACTION" = "create" ]; then
     create
