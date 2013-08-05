@@ -11,7 +11,7 @@
 LUAJIT_GITVERSION="2.0"
 LUAJIT_GIT_URL="http://luajit.org/git/luajit-$LUAJIT_GITVERSION.git"
 LUAROCKS_GIT_URL="https://github.com/keplerproject/luarocks.git"
-TURBO_GIT_URL="https://github.com/enotodden/turbo.git" # Will change enotodden to kernelsauce when/if pr #55 is accepted
+TURBO_GIT_URL="https://github.com/kernelsauce/turbo.git"
 
 
 usage(){
