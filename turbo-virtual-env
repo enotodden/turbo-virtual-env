@@ -113,7 +113,7 @@ write_activate_script(){
     echo "turbo-virtual-env: Writing activation script to $ENVDIR/bin/activate"
     echo -e '
 
-    export TURBO_VIRTUAL_ENV="$ENVDIR"
+    export TURBO_VIRTUAL_ENV='"$ENVDIR"'
     export PATH="$TURBO_VIRTUAL_ENV/bin:$TURBO_VIRTUAL_ENV/lib:$PATH"
     export TURBO_VIRTUAL_ENV_OLD_PATH="$PATH"
     export LD_LIBRARY_PATH="$TURBO_VIRTUAL_ENV/lib:$TURBO_VIRTUAL_ENV/lib/lua/5.1:$LD_LIBRARY_PATH"
