@@ -11,7 +11,7 @@
 LUAJIT_GITVERSION="2.0"
 LUAJIT_GIT_URL="http://luajit.org/git/luajit-$LUAJIT_GITVERSION.git"
 LUAROCKS_GIT_URL="https://github.com/keplerproject/luarocks.git"
-TURBO_GIT_URL="https://github.com/kernelsauce/turbo.git"
+TURBO_GIT_URL="https://github.com/enotodden/turbo.git"
 
 
 usage(){
@@ -92,7 +92,8 @@ install_turbo_dev(){
     echo "turbo-virtual-env: Linking existing turbo srcdir to $ENVDIR/src/turbo"
     ln -s $TURBO_DEV $ENVDIR/src/turbo
     echo "turbo-virtual-env: Building Turbo"
-    make -C $TURBO_DIR PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
+    make -C $TURBO_DIR all install_libtffi_wrap \
+        PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
     echo "turbo-virtual-env: linking turbo files"
     ln -s $TURBO_DIR/turbo.lua $ENVDIR/share/luajit-$LUAJIT_VERSION/turbo.lua
     ln -s $TURBO_DIR/turbo $ENVDIR/share/luajit-$LUAJIT_VERSION/turbo
@@ -110,31 +111,31 @@ install_luarocks_requirements() {
 
 write_activate_script(){
     echo "turbo-virtual-env: Writing activation script to $ENVDIR/bin/activate"
-    echo -e "
+    echo -e '
 
-    export TURBO_VIRTUAL_ENV=\"$ENVDIR\"
-    export PATH=\"\$TURBO_VIRTUAL_ENV/bin:\$TURBO_VIRTUAL_ENV/lib:$PATH\"
-    export TURBO_VIRTUAL_ENV_OLD_PATH=\"$PATH\"
-    export LD_LIBRARY_PATH=\$TURBO_VIRTUAL_ENV/lib:\$TURBO_VIRTUAL_ENV/lib/lua/5.1:$LD_LIBRARY_PATH
-    export TURBO_VIRTUAL_ENV_OLD_LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH\"
+    export TURBO_VIRTUAL_ENV="$ENVDIR"
+    export PATH="$TURBO_VIRTUAL_ENV/bin:$TURBO_VIRTUAL_ENV/lib:$PATH"
+    export TURBO_VIRTUAL_ENV_OLD_PATH="$PATH"
+    export LD_LIBRARY_PATH="$TURBO_VIRTUAL_ENV/lib:$TURBO_VIRTUAL_ENV/lib/lua/5.1:$LD_LIBRARY_PATH"
+    export TURBO_VIRTUAL_ENV_OLD_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 
     deactivate() {
-        export PATH=\$TURBO_VIRTUAL_ENV_OLD_PATH
-        export LD_LIBRARY_PATH=\$TURBO_VIRTUAL_ENV_OLD_LD_LIBRARY_PATH
+        export PATH="$TURBO_VIRTUAL_ENV_OLD_PATH"
+        export LD_LIBRARY_PATH="$TURBO_VIRTUAL_ENV_OLD_LD_LIBRARY_PATH"
         unset TURBO_VIRTUAL_ENV
-        if [ ! -z \$TURBO_VIRTUAL_ENV_OLD_PROMPT ]; then
-            export PS1=\"\$TURBO_VIRTUAL_ENV_OLD_PROMPT\"
+        if [ ! -z "$TURBO_VIRTUAL_ENV_OLD_PROMPT" ]; then
+            export PS1="$TURBO_VIRTUAL_ENV_OLD_PROMPT"
         fi
     }
 
-    export TURBO_VIRTUAL_ENV_OLD_PROMPT=\"\$PS1\";
-    if [ -z \"\$TURBO_VIRTUAL_ENV_DISABLE_PROMPT\" ] ; then
-        export PS1=\"[tvenv]\$PS1\";
+    export TURBO_VIRTUAL_ENV_OLD_PROMPT="$PS1";
+    if [ -z "$TURBO_VIRTUAL_ENV_DISABLE_PROMPT" ]; then
+        export PS1="tvenv -> $PS1";
     fi
 
 
-    alias lua=\"luajit-2.0.2\"
-    " > $ENVDIR/bin/activate
+    alias lua="luajit-2.0.2"
+    ' > $ENVDIR/bin/activate
 }
 
 
