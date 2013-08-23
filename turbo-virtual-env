@@ -121,7 +121,7 @@ write_activate_script(){
     deactivate() {
         export PATH=\$TURBO_VIRTUAL_ENV_OLD_PATH
         export LD_LIBRARY_PATH=\$TURBO_VIRTUAL_ENV_OLD_LD_LIBRARY_PATH
-        unset \$TURBO_VIRTUAL_ENV
+        unset TURBO_VIRTUAL_ENV
         if [ ! -z \$TURBO_VIRTUAL_ENV_OLD_PROMPT ]; then
             export PS1=\"\$TURBO_VIRTUAL_ENV_OLD_PROMPT\"
         fi
@@ -129,10 +129,7 @@ write_activate_script(){
 
     export TURBO_VIRTUAL_ENV_OLD_PROMPT=\"\$PS1\";
     if [ -z \"\$TURBO_VIRTUAL_ENV_DISABLE_PROMPT\" ] ; then
-        echo "$PS1" | grep 'tvenv' > /dev/null;
-        if [ $? -ne 0 ]; then
-            export PS1=\"[tvenv]\$PS1\";
-        fi
+        export PS1=\"[tvenv]\$PS1\";
     fi
 
 
@@ -153,8 +150,6 @@ create(){
     echo "turbo-virtual-env: Creating directories"
     mkdir -p "$ENVDIR/bin"
     mkdir -p "$ENVDIR/src"
-
-    ENVDIR=`realpath $ENVDIR`
 
     touch "$ENVDIR/.turbo-virtual-env"
 
@@ -193,13 +188,13 @@ while true; do
             exit
             shift;;
         -d|--turbo-dev)
-            TURBO_DEV=`realpath $2`
+            TURBO_DEV=`readlink -f "$2"`
             shift 2;;
         -r|--luarocks-requirements)
-            LUAROCKS_REQUIREMENTS_FILE=`realpath $2`
+            LUAROCKS_REQUIREMENTS_FILE=`readlink -f "$2"`
             shift 2;;
         -c|--create)
-            ENVDIR=$2
+            ENVDIR=`readlink -f "$2"`
             ACTION="create"
             shift 2;;
         --)
