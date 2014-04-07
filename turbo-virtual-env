@@ -11,10 +11,19 @@
 LUAJIT_GITVERSION="2.0"
 LUAJIT_GIT_URL="http://luajit.org/git/luajit-$LUAJIT_GITVERSION.git"
 LUAROCKS_GIT_URL="https://github.com/keplerproject/luarocks.git"
-TURBO_GIT_URL="https://github.com/enotodden/turbo.git"
+TURBO_GIT_URL="https://github.com/kernelsauce/turbo.git"
 
 set -e;
 set -x;
+
+CHECKFOR="readlink git make"
+for x in $CHECKFOR; do
+	which $x > /dev/null;
+	if [ $? -ne 0 ]; then
+		echo "Error: Could not find command '$x'."
+		exit 1
+	fi
+done
 
 usage(){
 	echo -e "\
@@ -103,7 +112,7 @@ install_luajit(){
 
     log "Installing LuaJIT to $ENVDIR"
     make -C $LUAJIT_SRCDIR install PREFIX=$ENVDIR
-    ln -s $ENVDIR/bin/luajit-`luajit_full_version` $ENVDIR/bin/lua
+    ln -sf $ENVDIR/bin/luajit-`luajit_full_version` $ENVDIR/bin/lua
 }
 
 
