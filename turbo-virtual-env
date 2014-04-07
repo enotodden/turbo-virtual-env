@@ -12,6 +12,7 @@ LUAJIT_GITVERSION="2.0"
 LUAJIT_GIT_URL="http://luajit.org/git/luajit-$LUAJIT_GITVERSION.git"
 LUAROCKS_GIT_URL="https://github.com/keplerproject/luarocks.git"
 TURBO_GIT_URL="https://github.com/kernelsauce/turbo.git"
+MAKE="make -j`getconf _NPROCESSORS_ONLN`"
 
 set -e;
 set -x;
@@ -29,7 +30,7 @@ usage(){
 	echo -e "\
 ** turbo-virtual-env **
 
-Usage: turbo-virtual-env -c/--create PATH_TO_ENV_DIR 
+Usage: turbo-virtual-env -c/--create PATH_TO_ENV_DIR
                          [--turbo-dev PATH_TO_TURBO_SOURCE_DIR]
                          [-r/--luarocks-requirements PATH_TO_LUAROCKS_REQUIREMENTS_FILE]
 
@@ -85,10 +86,10 @@ install_luarocks(){
 	log "Building LuaRocks"
     $LUAROCKS_SRCDIR/configure --prefix=$ENVDIR --force-config --with-lua=$ENVDIR --with-lua-include=$ENVDIR/include/luajit-$LUAJIT_GITVERSION
     mv config.unix $LUAROCKS_SRCDIR
-    make -C $LUAROCKS_SRCDIR build
+    $MAKE -C $LUAROCKS_SRCDIR build
 
 	log "Installing LuaRocks"
-    make -C $LUAROCKS_SRCDIR install
+    $MAKE -C $LUAROCKS_SRCDIR install
 }
 
 
@@ -96,7 +97,7 @@ install_luajit(){
     LUAJIT_CLONEDIR="/tmp/tvenv-luajit-$LUAJIT_GITVERSION"
 	LUAJIT_SRCDIR="$ENVDIR/src/luajit-$LUAJIT_GITVERSION"
 
-	if [ ! -d $LUAJIT_CLONEDIR ]; then 
+	if [ ! -d $LUAJIT_CLONEDIR ]; then
 		log "Cloning LuaJIT from $LUAJIT_GIT_URL to $LUAJIT_CLONEDIR"
 		git clone $LUAJIT_GIT_URL $LUAJIT_CLONEDIR
 	else
@@ -106,12 +107,12 @@ install_luajit(){
 	log "Copying files"
 	mkdir -p $LUAJIT_SRCDIR
 	cp -rvf $LUAJIT_CLONEDIR/* $LUAJIT_SRCDIR
-    
+
 	log "Building LuaJIT"
-    make -C $LUAJIT_SRCDIR PREFIX=$ENVDIR
+    $MAKE -C $LUAJIT_SRCDIR PREFIX=$ENVDIR
 
     log "Installing LuaJIT to $ENVDIR"
-    make -C $LUAJIT_SRCDIR install PREFIX=$ENVDIR
+    $MAKE -C $LUAJIT_SRCDIR install PREFIX=$ENVDIR
     ln -sf $ENVDIR/bin/luajit-`luajit_full_version` $ENVDIR/bin/lua
 }
 
@@ -120,7 +121,7 @@ install_turbo(){
 	TURBO_CLONEDIR="/tmp/tvenv-turbo"
     TURBO_SRCDIR="$ENVDIR/src/turbo"
     LUAJIT_VERSION=`luajit_full_version`
-    
+
 	if [ ! -d $TURBO_CLONEDIR ]; then
 		log "Cloning Turbo from $TURBO_GIT_URL to $TURBO_CLONEDIR"
 		git clone $TURBO_GIT_URL $TURBO_CLONEDIR
@@ -133,22 +134,22 @@ install_turbo(){
 	cp -rvf $TURBO_CLONEDIR/* $TURBO_SRCDIR
 
 	log "Building Turbo"
-    make -C $TURBO_SRCDIR PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
-    
+    $MAKE -C $TURBO_SRCDIR PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
+
 	log "Installing turbo to $ENVDIR"
-    make -C $TURBO_SRCDIR install PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
+    $MAKE -C $TURBO_SRCDIR install PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
 }
 
 
 install_turbo_dev(){
     LUAJIT_VERSION=`luajit_full_version`
-    
+
 	log "Linking existing turbo srcdir to $ENVDIR/src/turbo"
     ln -s $TURBO_DEV $ENVDIR/src/turbo
 
     log "Building Turbo"
-    make -C $TURBO_DEV all install PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
-    
+    $MAKE -C $TURBO_DEV all install PREFIX=$ENVDIR LUAJIT_VERSION=$LUAJIT_VERSION
+
 	log "linking turbo files"
 	rm -rf $ENVDIR/share/luajit-$LUAJIT_VERSION/turbo.lua
 	rm -rf $ENVDIR/share/luajit-$LUAJIT_VERSION/turbo
@@ -202,7 +203,7 @@ fi
 
 create(){
 
-    if [ -d $ENVDIR ]; then 
+    if [ -d $ENVDIR ]; then
         if [ ! -f "$ENVDIR/.turbo-virtual-env" ]; then
             echo "Directory '$ENVDIR' already exists and is not a turbo-virtual-env directory."
             exit 1
